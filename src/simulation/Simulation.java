@@ -5,13 +5,15 @@ import processing.core.PApplet;
 public class Simulation extends PApplet {
 
     private static final float VISCOSITY = 0f; // Simulation constants
-    private static final int SIM_SIZE = 512;
+    private static final int SIM_SIZE = 500;
     private static final int SCALE = 2;
     private static final float[] WATER_COLOR = {0, 45, 145};
-    private static final float AIR_FRICTION = 0.85f;
-    private static final float GRAVITY = 10;
+    private static final float AIR_FRICTION = 0.5f;
+    private static final float GRAVITY = 1;
 
     private Fluid fluid; // Fluid class instance
+
+    private boolean paused = true;
 
     public void settings() {            // Initial settings method to set as an example: size of screen
         size(SIM_SIZE * SCALE, SIM_SIZE * SCALE);
@@ -23,35 +25,35 @@ public class Simulation extends PApplet {
     }
 
     public void draw() {  // Method that runs the main thread
-        fluid.step();
         renderFluid();
+
+        if(!paused) {
+            fluid.step();
+        }
     }
 
     @Override
     public void mouseDragged() {
-        int vx = mouseX - pmouseX;
-        int vy = mouseY - pmouseY;
+        float newVelX = pmouseX - mouseX;
+        float newVelY = pmouseY - mouseY;
 
-        float[][][] fluidGrid = fluid.getFluidGrid(); // Getting the fluid grid from the Fluid class for easy use
+        fluid.addXModifier(constrain(newVelX, -4, 4));
+        fluid.addYModifier(constrain(newVelY, -4, 4));
+    }
 
-
-        fill(0);
-        rect(floor(mouseX / SCALE),  floor(mouseY / SCALE), 10, 10);
-
-        if(floor(mouseX / SCALE) - 1 >= 0 && floor(mouseY / SCALE) - 1 >= 0) {
-            for(int i = 0; i < 3; i++) {
-                for(int j = 0; j < 3; j++) {
-                    int curX = floor(mouseX / SCALE) + (j - 1);
-                    int curY = floor(mouseY / SCALE) + (i - 1);
-                    fluid.setIndexTo(curY, curX, (int) fluidGrid[curY][curX][0] + vx, (int) fluidGrid[curY][curX][1] + vy);
-                }
-            }
+    @Override
+    public void keyPressed() {
+        if(keyCode == 32) {
+            paused = !paused;
+        }
+        if(keyCode == RIGHT && paused) {
+            fluid.step();
         }
     }
 
     private void renderFluid() {
 
-        background(255);
+        background(100, 120, 200);
 
         float[][][] fluidGrid = fluid.getFluidGrid(); // Getting the fluid grid from the Fluid class for easy use
 
